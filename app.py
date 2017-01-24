@@ -15,8 +15,8 @@ logging.basicConfig(level=logging.DEBUG)
 from pyflock import FlockClient, verify_event_token
 from pyflock import Message, SendAs, Attachment, Views, WidgetView, HtmlView, ImageView, Image, Download, Button, OpenWidgetAction, OpenBrowserAction, SendToAppAction
 
-from db import user_add, user_remove
-from drive import listFiles
+from db import user_add, user_remove, add_files
+from drive import listFiles, retrieveAllFiles
 
 app = Flask(__name__)
 csrf = CSRFProtect(app)
@@ -52,7 +52,12 @@ def events():
 		userId = content['userId']
 		token = content['token']
 
-		listFiles()
+		#listFiles()
+		#result = retrieveAllFiles(userId)
+
+		#add_files(userId, result)
+
+		#print_revision(userId)
 		user_add(userId, token)
 		
 		return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
@@ -60,23 +65,10 @@ def events():
 		userId = content['userId']
 		
 		user_remove(userId)		
+
 		return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
 	return json.dumps({'success':False}), 201, {'ContentType':'application/json'} 
-
-'''
-@app.route('/events/app.install', methods=['POST'])
-def token_init():
-	input_json = request.get_json(force=True)
-	print input_json
-
-
-@app.route('/events/app.uninstall', methods=['POST'])
-def token_uninit():
-	input_json = request.get_json(force=True)
-	print input_json
-
-'''
 
 @app.route('/sample/')
 def sample():

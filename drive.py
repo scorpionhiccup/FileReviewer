@@ -1,78 +1,138 @@
 #from __future__ import print_function
 import httplib2
 import os
+import pprint
 
 from apiclient import discovery
+from apiclient import errors
 from oauth2client import client
 from oauth2client import tools
 from oauth2client.file import Storage
 
-try:
-    import argparse
-    flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
-except ImportError:
-    flags = None
-
-# If modifying these scopes, delete your previously saved credentials
-# at ~/.credentials/drive-python-quickstart.json
-SCOPES = 'https://www.googleapis.com/auth/drive.metadata.readonly'
+SCOPES = 'https://www.googleapis.com/auth/drive'
 CLIENT_SECRET_FILE = 'client_secret.json'
 APPLICATION_NAME = 'Drive API Python Quickstart'
 
 
-def get_credentials():
-    """Gets valid user credentials from storage.
+def get_credentials(userID):
+	"""Gets valid user credentials from storage.
 
-    If nothing has been stored, or if the stored credentials are invalid,
-    the OAuth2 flow is completed to obtain the new credentials.
+	If nothing has been stored, or if the stored credentials are invalid,
+	the OAuth2 flow is completed to obtain the new credentials.
 
-    Returns:
-        Credentials, the obtained credential.
-    """
-    home_dir = os.path.expanduser('~')
-    credential_dir = os.path.join(home_dir, '.credentials')
-    if not os.path.exists(credential_dir):
-        os.makedirs(credential_dir)
-    credential_path = os.path.join(credential_dir,
-                                   'drive-python-quickstart.json')
+	Returns:
+		Credentials, the obtained credential.
+	"""
+	home_dir = os.path.expanduser('~')
+	home_dir = os.path.join(home_dir, userID)
+	credential_dir = os.path.join(home_dir, '.credentials')
+	if not os.path.exists(credential_dir):
+		os.makedirs(credential_dir)
+	credential_path = os.path.join(credential_dir,
+								   'drive-python-quickstart.json')
 
-    store = Storage(credential_path)
-    credentials = store.get()
-    if not credentials or credentials.invalid:
-        flow = client.flow_from_clientsecrets(CLIENT_SECRET_FILE, SCOPES)
-        flow.user_agent = APPLICATION_NAME
-        if flags:
-            credentials = tools.run_flow(flow, store, flags)
-        else: # Needed only for compatibility with Python 2.6
-            credentials = tools.run(flow, store)
-        print('Storing credentials to ' + credential_path)
-    return credentials
+	store = Storage(credential_path)
+	credentials = store.get()
+	if not credentials or credentials.invalid:
+		flow = client.flow_from_clientsecrets(CLIENT_SECRET_FILE, SCOPES)
+		flow.user_agent = APPLICATION_NAME
+		if flags:
+			credentials = tools.run_flow(flow, store, flags)
+		else: # Needed only for compatibility with Python 2.6
+			credentials = tools.run(flow, store)
+		print('Storing credentials to ' + credential_path)
+	return credentials
 
 
-def getService():
-    credentials = get_credentials()
-    http = credentials.authorize(httplib2.Http())
-    service = discovery.build('drive', 'v2', http=http)
-    return service
+def getService(userID):
+	credentials = get_credentials(userID)
+	http = credentials.authorize(httplib2.Http())
+	service = discovery.build('drive', 'v2', http=http, cache_discovery=False)
+	return service
+
+def retrieveAllFiles(userID):
+	"""Retrieve a list of File resources.
+
+	Args:
+	service: Drive API service instance.
+	Returns:
+	List of File resources.
+	"""
+	service = getService(userID)
+
+	result = []
+	page_token = None
+	#pp = pprint.PrettyPrinter(indent=4)
+
+	while True:
+		try:
+			param = {}
+			if page_token:
+				param['pageToken'] = page_token
+			files = service.files().list(**param).execute()
+
+
+			#for item in files['items'][:4]:
+			#	result.append(item['id'])
+
+			result.extend(files['items'])
+			#pp.pprint(files['items'])
+			#print json.dumpfiles['items']
+			page_token = files.get('nextPageToken')
+			if not page_token:
+				break
+		except errors.HttpError, error:
+			print 'An error occurred: %s' % error
+			break
+	return result
 
 def listFiles():
 	"""Shows basic usage of the Google Drive API.
 
-    Creates a Google Drive API service object and outputs the names and IDs
-    for up to 10 files.
-    """
+	Creates a Google Drive API service object and outputs the names and IDs
+	for up to 10 files.
+	"""
 	
 	service = getService()
 
-    results = service.files().list(
-        pageSize=10,fields="nextPageToken, files(id, name)").execute()
-    items = results.get('files', [])
-    if not items:
-        print('No files found.')
-    else:
-        print('Files:')
-        for item in items:
-            print('{0} ({1})'.format(item['name'], item['id']))
+	results = service.files().list(
+		pageSize=10, fields="nextPageToken, files(id, name)").execute()
+	items = results.get('files', [])
+	if not items:
+		print('No files found.')
+	else:
+		print('Files:')
+		for item in items:
+			print('{0} ({1})'.format(item['name'], item['id']))
+
+def print_revision():
+	"""Print information about the specified revision.
+
+	Args:
+	service: Drive API service instance.
+	file_id: ID of the file to print revision for.
+	revision_id: ID of the revision to print.
+	"""
+	service = getService()
+	fileId = "1w9-k8LZFc_U7iEu1MEvfVN8fi_oR5b7uKIl8WGrY240"
+	revision_id = 12605
+
+	try:
+		revision = service.revisions().get(
+			fileId=fileId, revisionId=revision_id).execute()
+
+		#print 'Revision ID: %s' % revision['id']
+		#print 'Modified Date: %s' % revision['modifiedDate']
+		#print revision['selfLink']
+		print revision
+		resp, content = service._http.request(revision['selfLink'])
+		print resp
+		print content
+		if revision.get('pinned'):
+		  print 'This revision is pinned'
+	except Exception, error:
+		print 'An error occurred: %s' % error
 
 if __name__ == '__main__':
-	listFiles()
+	print retrieve_all_files()
+	#print_revision()

@@ -3,15 +3,20 @@ from pyflock import FlockClient, verify_event_token
 
 from pyflock import Message, SendAs, Attachment, Views, WidgetView, HtmlView, ImageView, Image, Download, Button, OpenWidgetAction, OpenBrowserAction, SendToAppAction
 import jwt
+import json
 
 def get_conn():
-	conn = psycopg2.connect(
-		database='de5neind23v615',
-		user='dbmvblmsvjrnzz',
-		password='0144a342ab7473f045472d58aacb1e0137763d1acf006e5ba41f3561e6ae787c',
-		host='ec2-23-21-76-49.compute-1.amazonaws.com',
-		port='5432'
+	with open('secret.json') as cred_file:
+		db_creds = json.load(cred_file)
 
+	print db_creds
+	
+	conn = psycopg2.connect(
+		database=db_creds["database"],
+		user=db_creds["user"],
+		password=db_creds["password"],
+		host=db_creds["host"],
+		port=db_creds["port"]
 	)
 
 	return conn
@@ -36,4 +41,18 @@ def user_remove(userid):
 	conn.commit()
 	conn.close()
 	
-	return "Successfully registered"
+	return "Successfully unregistered"
+
+def add_files(userid, result):
+	conn = get_conn()
+
+	cur = conn.cursor()
+
+	for item in result:
+		cur.execute("INSERT INTO userfiles (userid,token) VALUES ('"+str(userid)+"', '"+str(item)+"');")
+		cur.execute("INSERT INTO userfiles (userid,fileId) VALUES ('"+str(userid)+"', '"+str(item)+"');")
+	
+	conn.commit()
+	conn.close()
+	
+	return "Successfully added all files of user"
