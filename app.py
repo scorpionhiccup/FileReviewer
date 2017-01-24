@@ -16,6 +16,7 @@ from pyflock import FlockClient, verify_event_token
 from pyflock import Message, SendAs, Attachment, Views, WidgetView, HtmlView, ImageView, Image, Download, Button, OpenWidgetAction, OpenBrowserAction, SendToAppAction
 
 from db import user_add, user_remove
+from drive import listFiles
 
 app = Flask(__name__)
 csrf = CSRFProtect(app)
@@ -51,6 +52,7 @@ def events():
 		userId = content['userId']
 		token = content['token']
 
+		listFiles()
 		user_add(userId, token)
 		
 		return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
