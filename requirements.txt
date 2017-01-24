@@ -1,9 +1,13 @@
 click==6.7
 Flask==0.12
+Flask-WTF==0.14.2
+gunicorn==19.6.0
 itsdangerous==0.24
 Jinja2==2.9.4
 MarkupSafe==0.23
-pyflock==0.1
+psycopg2==2.6.2
+-e git://github.com/flockchat/pyflock@7983837f23a2cbce10fb61b3546411c9d6d16f32#egg=pyflock
 PyJWT==1.4.2
 requests==2.12.5
 Werkzeug==0.11.15
+WTForms==2.1
