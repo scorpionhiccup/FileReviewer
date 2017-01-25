@@ -14,9 +14,12 @@ logging.basicConfig(level=logging.DEBUG)
 
 from pyflock import FlockClient, verify_event_token
 from pyflock import Message, SendAs, Attachment, Views, WidgetView, HtmlView, ImageView, Image, Download, Button, OpenWidgetAction, OpenBrowserAction, SendToAppAction
+#from slashcommands import ndreminder,widgetview,echo
 
-from db import user_add, user_remove, add_files
-from drive import listFiles, retrieveAllFiles, 	getUserInfo
+from mycmd import echo
+
+from db import user_add, user_remove, add_files, remove_files, watch_file, watched_files_user
+from drive import listFiles, retrieveAllFiles, getUserInfo, fetchFile
 
 app = Flask(__name__)
 csrf = CSRFProtect(app)
@@ -42,6 +45,31 @@ def signal_handler(signal, frame):
 def hello():
 	return "Hello World!"
 
+@app.route('/sample/')
+def sample():
+	userId = "u:yata4oday666otrt"
+	files = watched_files_user(userId)
+
+	for file in files:
+		fetchFile(userId, file[0])
+
+	return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
+
+def send_msg(userId, text, fileName=''):
+	app_id = '3634e691-a7e4-45be-a42a-ae1155073d74'
+	bot_token = '44cd66c1-5e89-4b09-98a6-c81e1e4ca33d'
+
+	flock_client = FlockClient(token=bot_token, app_id=app_id)
+
+	msg = Message(to=userId, text=text)
+
+	if fileName:
+		watch_file(userId, fileName)
+
+	# returns a message id
+	res = flock_client.send_chat(msg)
+	print(res)
+
 @app.route('/events/', methods=['post'])
 @csrf.exempt
 def events():
@@ -56,42 +84,45 @@ def events():
 
 		email_addr = getUserInfo(userId)
 		#listFiles()
-		#result = retrieveAllFiles(userId)
-
-		#add_files(userId, result)
+		result = retrieveAllFiles(userId)
+		remove_files(userId)
+		add_files(userId, result)
 
 		#print_revision(userId)
-		user_add(userId, token)
+		user_add(userId, token, email_addr)
 		
 		return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 	elif name == "app.uninstall":
 		userId = content['userId']
 		
 		user_remove(userId)		
+		remove_files(userId)
+
+		return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
+	elif name == "client.slashCommand":
+		userId = content['userId']
+		userName = content['userName']
+		chat = content['chat']
+		chatName = content['chatName']
+		command = content['command']
+		text = ''
+		if content['text']:
+			text = content['text']
+
+		try:
+
+			send_msg(userId, "Watching File:" + str(text), str(text))
+
+			for file in watched_files_user(userId):
+				fetch
+			#print watched_files_user(userId)
+
+		except Exception as e:
+			print str(e)
 
 		return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
 	return json.dumps({'success':False}), 201, {'ContentType':'application/json'} 
-
-@app.route('/sample/')
-def sample():
-
-	user_id = 'u:yata4oday666otrt'
-	
-	if tokens:
-		user_id = tokens.keys()[0]
-
-	bot_token = ''
-	if tokens[user_id]:
-		bot_token = tokens[user_id]
-	
-	user_token = bot_token
-
-	app_id = '7d6ceaa6-21f1-47f5-b3c1-b8ea07313f29'
-	app_secret = 'a9c64196-332a-4d8c-8054-8aad6d25a6b2'
-
-	#if verify_event_token()
-
 
 if __name__ == '__main__':
 	signal.signal(signal.SIGINT, signal_handler)

@@ -5,6 +5,7 @@ import pprint
 
 from apiclient import discovery
 from apiclient import errors
+from apiclient import http
 from oauth2client import client
 from oauth2client import tools
 from oauth2client.file import Storage
@@ -78,25 +79,40 @@ def retrieveAllFiles(userID):
 
 	while True:
 		try:
-			param = {}
+			param = {'maxResults': 5, 'orderBy': "modifiedByMeDate desc, title"}
 			if page_token:
 				param['pageToken'] = page_token
 			files = service.files().list(**param).execute()
 
 
-			#for item in files['items'][:4]:
-			#	result.append(item['id'])
+			for item in files['items']:
+				result.append([item['id'], item['title']])
+				#print result[-1]
 
-			result.extend(files['items'])
+			#result.extend(files['items'])
 			#pp.pprint(files['items'])
 			#print json.dumpfiles['items']
 			page_token = files.get('nextPageToken')
 			if not page_token:
 				break
+			break
 		except errors.HttpError, error:
 			print 'An error occurred: %s' % error
 			break
 	return result
+
+def fetchFile(userID, file_id):
+	service = getService(userID)
+
+	try:
+		file = service.files().get(fileId=file_id).execute()
+
+		print 'Title: %s' % file['title']
+		print 'URL: %s' % file['exportLinks']['text/plain']
+		print file
+	except errors.HttpError, error:
+		print 'An error occurred: %s' % error
+
 
 def listFiles(userID):
 	"""Shows basic usage of the Google Drive API.
@@ -117,7 +133,7 @@ def listFiles(userID):
 		for item in items:
 			print('{0} ({1})'.format(item['name'], item['id']))
 
-def print_revision():
+def print_revision(userID):
 	"""Print information about the specified revision.
 
 	Args:
@@ -125,7 +141,7 @@ def print_revision():
 	file_id: ID of the file to print revision for.
 	revision_id: ID of the revision to print.
 	"""
-	service = getService()
+	service = getService(userID)
 	fileId = "1w9-k8LZFc_U7iEu1MEvfVN8fi_oR5b7uKIl8WGrY240"
 	revision_id = 12605
 
@@ -145,9 +161,10 @@ def print_revision():
 	except Exception, error:
 		print 'An error occurred: %s' % error
 
+
 if __name__ == '__main__':
 	#getUserInfo()
 	#print listFiles()
 	#print retrieve_all_files()
-	#print_revision()
+	#print_revision(userID)
 	pass

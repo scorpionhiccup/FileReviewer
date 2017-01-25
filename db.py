@@ -21,12 +21,12 @@ def get_conn():
 
 	return conn
 
-def user_add(userid, token):
+def user_add(userid, token, email_address):
 	conn = get_conn()
 	cur = conn.cursor()
 
 	#cur.execute("DELETE FROM appusers WHERE userid='" + str(userid) + "'")
-	cur.execute("INSERT INTO appusers (userid,token) VALUES ('"+str(userid)+"', '"+str(token)+"');")
+	cur.execute("INSERT INTO appusers (userid,email_addr,token) VALUES ('" + str(userid) + "', '" + str(email_address) + "', '" +str(token)+"');")
 	conn.commit()
 	conn.close()
 	
@@ -49,10 +49,55 @@ def add_files(userid, result):
 	cur = conn.cursor()
 
 	for item in result:
-		cur.execute("INSERT INTO userfiles (userid,token) VALUES ('"+str(userid)+"', '"+str(item)+"');")
-		cur.execute("INSERT INTO userfiles (userid,fileId) VALUES ('"+str(userid)+"', '"+str(item)+"');")
+		cur.execute("INSERT INTO userfiles (userid,fileId,filename) VALUES ('"+str(userid)+"', '"+str(item[0])+"', '" + str(item[1]) +"');")
 	
 	conn.commit()
 	conn.close()
 	
 	return "Successfully added all files of user"
+
+def remove_files(userid, fileId=None):
+
+	conn = get_conn()
+
+	cur = conn.cursor()
+
+	if fileId==None:
+		cur.execute("DELETE FROM userfiles WHERE userid='" + str(userid) + "'")
+	else:
+		for file_item in fileId:
+			cur.execute("DELETE FROM userfiles WHERE userid='" + str(userid) + "'" + "AND fileId='" + str(file_item) + "'")
+	
+	conn.commit()
+	conn.close()
+	
+	return "Successfully unregistered files"
+
+def watched_files_user(userId):
+	conn = get_conn()
+
+	cur = conn.cursor()
+
+	cur.execute("SELECT fileid, filename FROM userfiles WHERE userid='" + str(userId) + "'" + "AND iswatched='TRUE';")
+
+	rows = cur.fetchall()
+
+	#print rows
+
+	conn.commit()
+	conn.close()
+	
+	return rows
+		
+def watch_file(userId, fileName):
+	conn = get_conn()
+
+	cur = conn.cursor()
+
+	cur.execute("UPDATE userfiles SET iswatched = TRUE WHERE userid='" + str(userId) + "'" + "AND filename ILIKE '%" + str(fileName) + "%'")
+
+	conn.commit()
+	conn.close()
+	
+	return "Successfully watched files"
+
