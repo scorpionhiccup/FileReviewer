@@ -9,7 +9,7 @@ def get_conn():
 	with open('secret.json') as cred_file:
 		db_creds = json.load(cred_file)
 
-	print db_creds
+	#print db_creds
 	
 	conn = psycopg2.connect(
 		database=db_creds["database"],

@@ -9,7 +9,7 @@ from oauth2client import client
 from oauth2client import tools
 from oauth2client.file import Storage
 
-SCOPES = 'https://www.googleapis.com/auth/drive'
+SCOPES = 'https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/userinfo.email'
 CLIENT_SECRET_FILE = 'client_secret.json'
 APPLICATION_NAME = 'Drive API Python Quickstart'
 
@@ -36,13 +36,25 @@ def get_credentials(userID):
 	if not credentials or credentials.invalid:
 		flow = client.flow_from_clientsecrets(CLIENT_SECRET_FILE, SCOPES)
 		flow.user_agent = APPLICATION_NAME
-		if flags:
-			credentials = tools.run_flow(flow, store, flags)
-		else: # Needed only for compatibility with Python 2.6
-			credentials = tools.run(flow, store)
+		#if flags:
+		credentials = tools.run_flow(flow, store, None)
+		#else: # Needed only for compatibility with Python 2.6
+		#	credentials = tools.run(flow, store)
 		print('Storing credentials to ' + credential_path)
 	return credentials
 
+
+def getUserInfo(userID):
+	service = getService(userID)
+	try:
+		about = service.about().get().execute()
+
+		#print 'Current user name: %s' % about['name']
+		#print about['user']
+		
+		return about['user']['emailAddress']	
+	except errors.HttpError, error:
+		print 'An error occurred: %s' % error
 
 def getService(userID):
 	credentials = get_credentials(userID)
@@ -86,14 +98,14 @@ def retrieveAllFiles(userID):
 			break
 	return result
 
-def listFiles():
+def listFiles(userID):
 	"""Shows basic usage of the Google Drive API.
 
 	Creates a Google Drive API service object and outputs the names and IDs
 	for up to 10 files.
 	"""
 	
-	service = getService()
+	service = getService(userID)
 
 	results = service.files().list(
 		pageSize=10, fields="nextPageToken, files(id, name)").execute()
@@ -134,5 +146,8 @@ def print_revision():
 		print 'An error occurred: %s' % error
 
 if __name__ == '__main__':
-	print retrieve_all_files()
+	#getUserInfo()
+	#print listFiles()
+	#print retrieve_all_files()
 	#print_revision()
+	pass

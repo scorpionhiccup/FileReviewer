@@ -16,7 +16,7 @@ from pyflock import FlockClient, verify_event_token
 from pyflock import Message, SendAs, Attachment, Views, WidgetView, HtmlView, ImageView, Image, Download, Button, OpenWidgetAction, OpenBrowserAction, SendToAppAction
 
 from db import user_add, user_remove, add_files
-from drive import listFiles, retrieveAllFiles
+from drive import listFiles, retrieveAllFiles, 	getUserInfo
 
 app = Flask(__name__)
 csrf = CSRFProtect(app)
@@ -52,6 +52,9 @@ def events():
 		userId = content['userId']
 		token = content['token']
 
+		#print userId
+
+		email_addr = getUserInfo(userId)
 		#listFiles()
 		#result = retrieveAllFiles(userId)
 
