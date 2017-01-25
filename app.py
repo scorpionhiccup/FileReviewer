@@ -16,7 +16,7 @@ from pyflock import FlockClient, verify_event_token
 from pyflock import Message, SendAs, Attachment, Views, WidgetView, HtmlView, ImageView, Image, Download, Button, OpenWidgetAction, OpenBrowserAction, SendToAppAction
 #from slashcommands import ndreminder,widgetview,echo
 
-from mycmd import echo
+#from mycmd import echo
 
 from db import user_add, user_remove, add_files, remove_files, watch_file, watched_files_user
 from drive import listFiles, retrieveAllFiles, getUserInfo, fetchFile
