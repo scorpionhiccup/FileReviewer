@@ -16,10 +16,10 @@ from pyflock import FlockClient, verify_event_token
 from pyflock import Message, SendAs, Attachment, Views, WidgetView, HtmlView, ImageView, Image, Download, Button, OpenWidgetAction, OpenBrowserAction, SendToAppAction
 #from slashcommands import ndreminder,widgetview,echo
 
-#from mycmd import echo
-
 from db import user_add, user_remove, add_files, remove_files, watch_file, watched_files_user
 from drive import listFiles, retrieveAllFiles, getUserInfo, fetchFile
+
+from util import send_msg
 
 app = Flask(__name__)
 csrf = CSRFProtect(app)
@@ -47,28 +47,13 @@ def hello():
 
 @app.route('/sample/')
 def sample():
-	userId = "u:yata4oday666otrt"
+	userId = ""
 	files = watched_files_user(userId)
 
 	for file in files:
 		fetchFile(userId, file[0])
 
 	return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
-
-def send_msg(userId, text, fileName=''):
-	app_id = '3634e691-a7e4-45be-a42a-ae1155073d74'
-	bot_token = '44cd66c1-5e89-4b09-98a6-c81e1e4ca33d'
-
-	flock_client = FlockClient(token=bot_token, app_id=app_id)
-
-	msg = Message(to=userId, text=text)
-
-	if fileName:
-		watch_file(userId, fileName)
-
-	# returns a message id
-	res = flock_client.send_chat(msg)
-	print(res)
 
 @app.route('/events/', methods=['post'])
 @csrf.exempt
@@ -85,20 +70,26 @@ def events():
 		email_addr = getUserInfo(userId)
 		#listFiles()
 		result = retrieveAllFiles(userId)
+		
 		remove_files(userId)
+		user_remove(userId)
+
+		#print result
 		add_files(userId, result)
 
 		#print_revision(userId)
 		user_add(userId, token, email_addr)
 		
 		return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
+	
 	elif name == "app.uninstall":
 		userId = content['userId']
 		
-		user_remove(userId)		
 		remove_files(userId)
+		user_remove(userId)		
 
 		return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
+	
 	elif name == "client.slashCommand":
 		userId = content['userId']
 		userName = content['userName']
@@ -110,15 +101,12 @@ def events():
 			text = content['text']
 
 		try:
-
-			send_msg(userId, "Watching File:" + str(text), str(text))
-
-			for file in watched_files_user(userId):
-				fetch
-			#print watched_files_user(userId)
-
+			if str(text):
+				#print userId
+				watch_file(userId, str(text))
+				send_msg(userId, "Watching File: " + str(text))
 		except Exception as e:
-			print str(e)
+			send_msg(userId, "Unable to Watch File:" + str(text))
 
 		return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 

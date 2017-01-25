@@ -26,8 +26,8 @@ def get_credentials(userID):
 	"""
 	home_dir = os.path.expanduser('~')
 
-	#credential_dir = os.path.join(home_dir, userID, '.credentials')
-	credential_dir = os.path.join(home_dir, '.credentials')
+	credential_dir = os.path.join(home_dir, userID, '.credentials')
+	#credential_dir = os.path.join(home_dir, '.credentials')
 	if not os.path.exists(credential_dir):
 		os.makedirs(credential_dir)
 	credential_path = os.path.join(credential_dir,
@@ -80,7 +80,7 @@ def retrieveAllFiles(userID):
 
 	while True:
 		try:
-			param = {'maxResults': 5, 'orderBy': "modifiedByMeDate desc, title"}
+			param = {'maxResults': 3, 'orderBy': "modifiedByMeDate desc, title"}
 			if page_token:
 				param['pageToken'] = page_token
 			files = service.files().list(**param).execute()
@@ -109,10 +109,15 @@ def fetchFile(userID, file_id):
 		file = service.files().get(fileId=file_id).execute()
 
 		print 'Title: %s' % file['title']
-		print 'URL: %s' % file['exportLinks']['text/plain']
+		#print 'URL: %s' % file['exportLinks']['text/plain']
+		print file['lastModifyingUser']['emailAddress']
+
 		print file
+		return [file['exportLinks']['text/plain'], file['lastModifyingUser']['emailAddress']]
+
 	except errors.HttpError, error:
 		print 'An error occurred: %s' % error
+		return []
 
 
 def listFiles(userID):
@@ -161,7 +166,6 @@ def print_revision(userID):
 		  print 'This revision is pinned'
 	except Exception, error:
 		print 'An error occurred: %s' % error
-
 
 if __name__ == '__main__':
 	#getUserInfo()

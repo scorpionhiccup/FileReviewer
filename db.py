@@ -66,7 +66,7 @@ def remove_files(userid, fileId=None):
 		cur.execute("DELETE FROM userfiles WHERE userid='" + str(userid) + "'")
 	else:
 		for file_item in fileId:
-			cur.execute("DELETE FROM userfiles WHERE userid='" + str(userid) + "'" + "AND fileId='" + str(file_item) + "'")
+			cur.execute("DELETE FROM userfiles WHERE userid='" + str(userid) + "'AND fileId='" + str(file_item) + "'")
 	
 	conn.commit()
 	conn.close()
@@ -78,7 +78,9 @@ def watched_files_user(userId):
 
 	cur = conn.cursor()
 
-	cur.execute("SELECT fileid, filename FROM userfiles WHERE userid='" + str(userId) + "'" + "AND iswatched='TRUE';")
+	#print userId[0]
+
+	cur.execute("SELECT fileid, filename FROM userfiles WHERE userid='" + str(userId) + "' AND iswatched='TRUE';")
 
 	rows = cur.fetchall()
 
@@ -94,10 +96,61 @@ def watch_file(userId, fileName):
 
 	cur = conn.cursor()
 
-	cur.execute("UPDATE userfiles SET iswatched = TRUE WHERE userid='" + str(userId) + "'" + "AND filename ILIKE '%" + str(fileName) + "%'")
+	#print userId
+	#print fileName
+
+	cur.execute("UPDATE userfiles SET iswatched = TRUE WHERE userid='" + str(userId) + "' AND filename ILIKE '%" + str(fileName) + "%';")
 
 	conn.commit()
 	conn.close()
 	
 	return "Successfully watched files"
 
+def get_all_users():
+	conn = get_conn()
+
+	cur = conn.cursor()
+
+	cur.execute("SELECT userid FROM appusers;")
+
+	rows = cur.fetchall()
+
+	#print rows
+
+	conn.commit()
+	conn.close()
+	
+	return rows
+
+def get_email(userId):
+	conn = get_conn()
+
+	cur = conn.cursor()
+
+	cur.execute("SELECT email_addr FROM appusers WHERE userid='" + str(userId) + "';")
+
+	rows = cur.fetchall()
+
+	#print rows
+
+	conn.commit()
+	conn.close()
+	
+	return rows[0]
+
+
+def get_userId(email_addr):
+	conn = get_conn()
+
+	cur = conn.cursor()
+
+	cur.execute("SELECT email_addr FROM appusers WHERE email_addr='" + str(email_addr) + "';")
+
+	rows = cur.fetchall()
+
+	#print rows
+
+	conn.commit()
+	conn.close()
+	
+	return rows
