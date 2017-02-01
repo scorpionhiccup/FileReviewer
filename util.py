@@ -15,4 +15,5 @@ def send_msg(userId, text):
 
 
 if __name__ == '__main__':
+	print ''
 	#send_msg(userId, "Review Changes in the file:" + str(fileName))
