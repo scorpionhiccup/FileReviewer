@@ -24,7 +24,8 @@ def get_credentials(userID):
 	Returns:
 		Credentials, the obtained credential.
 	"""
-	home_dir = os.path.expanduser('~')
+	home_dir = os.getcwd()
+	home_dir = os.path.join(home_dir, '.metadata')
 
 	credential_dir = os.path.join(home_dir, userID, '.credentials')
 	#credential_dir = os.path.join(home_dir, '.credentials')
