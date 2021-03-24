@@ -15,7 +15,7 @@ pyasn1-modules==0.0.8
 -e git://github.com/flockchat/pyflock@7983837f23a2cbce10fb61b3546411c9d6d16f32#egg=pyflock
 PyJWT==1.4.2
 requests==2.12.5
-rsa==3.4.2
+rsa==4.1
 six==1.10.0
 uritemplate==3.0.0
 urllib3==1.20
